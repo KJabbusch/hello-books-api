@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, make_response, request
+import sqlalchemy
 from app import db
 from app.models.kpop_group import KpopGroup
 import json
@@ -34,6 +35,7 @@ def validate_json(json_data):
 
 @kpop_bp.route("", methods=['POST', 'GET'])
 def handle_kpop_groups():
+    # get all records
     if request.method == "GET":
         kpop_groups = KpopGroup.query.all()
         kpop_response = []
@@ -45,10 +47,10 @@ def handle_kpop_groups():
                 "label": group.label
             })
         return jsonify(kpop_response)
+
+    # add a new record
     elif request.method == "POST":
         request_body = request.get_json()
-        # check that request body has all Kpop Group attributes
-        to_check = json.dumps(request_body)
         if not validate_json(request_body):
             return make_response("Invalid request", 400)
 
@@ -63,15 +65,35 @@ def handle_kpop_groups():
 
         return make_response(f"Kpop Group {new_group.group} successfully created", 201)
 
-@kpop_bp.route("/<group_id>", methods=["GET"])
+@kpop_bp.route("/<group_id>", methods=["GET", "PUT", "DELETE"])
 def handle_kpop_group(group_id):
-    group_id = int(group_id)
-    kpop_groups = KpopGroup.query.all()
-    for group in kpop_groups:
-        if group.id == group_id:
-            return {
-                "id": group.id,
-                "group": group.group,
-                "members": group.members,
-                "label": group.label
-            }
+    kpop_group = KpopGroup.query.get_or_404(group_id)
+    # if not kpop_group:
+    #     return "This group ID does not exist in the database.", 400
+
+    # return the record
+    if request.method == "GET":
+        return {
+            "id": kpop_group.id,
+            "group": kpop_group.group,
+            "members": kpop_group.members,
+            "label": kpop_group.label
+        }
+    # update the record
+    elif request.method == "PUT":
+        request_body = request.get_json()
+        if not validate_json(request_body):
+            return make_response("Invalid request; requires 'group', 'members' and 'label'", 400)
+        
+        kpop_group.group = request_body["group"]
+        kpop_group.members = request_body["members"]
+        kpop_group.label = request_body["label"]
+
+        db.session.commit()
+        return make_response(f"Kpop Group {kpop_group.group} successfully updated", 201)
+
+    # delete the record
+    elif request.method == "DELETE":
+        db.session.delete(kpop_group)
+        db.session.commit()
+        return make_response(f"Kpop Group {kpop_group.group} has been deleted from the database.", 200)
