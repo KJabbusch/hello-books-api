@@ -8,13 +8,21 @@ from jsonschema import validate
 kpop_bp = Blueprint("kpop-groups", __name__, url_prefix="/kpop-groups")
 
 kpop_schema = {
-    "key-values":
-        {
-        "group": {"type", "string"},
-        "members": {"type", "string"},
-        "label": {"type", "string"}
-    },
-    "required": ["group", "members", "label"]
+    "title": "Kpop Group Data",
+    "description": "Contains group name, group members, and their music label.",
+    "required": ["group", "members", "label"],
+    "type": "object",
+    "properties": {
+        "group": {
+            "type": "string",
+        },
+        "members": {
+            "type": "string",
+        },
+        "label": {
+            "type": "string"
+        }
+    }
 }
 
 def validate_json(json_data):
