@@ -67,6 +67,11 @@ def handle_kpop_groups():
 
 @kpop_bp.route("/<group_id>", methods=["GET", "PUT", "DELETE"])
 def handle_kpop_group(group_id):
+    try:
+        int(group_id)
+    except:
+        return make_response("ID given is not an integer.", 400)
+
     kpop_group = KpopGroup.query.get_or_404(group_id)
     # if not kpop_group:
     #     return "This group ID does not exist in the database.", 400
