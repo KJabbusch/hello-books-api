@@ -37,9 +37,14 @@ def validate_json(json_data):
 def handle_kpop_groups():
     # get all records
     if request.method == "GET":
-        kpop_groups = KpopGroup.query.all()
+        kpop_query = request.args.get('group')
+        if kpop_query:
+            groups = KpopGroup.query.filter_by(group=kpop_query).all()
+        else:
+            groups = KpopGroup.query.all()
+
         kpop_response = []
-        for group in kpop_groups:
+        for group in groups:
             kpop_response.append(group.to_dict())
         return jsonify(kpop_response), 200
 
