@@ -6,5 +6,10 @@ class KpopGroup(db.Model):
     members = db.Column(db.String)
     label = db.Column(db.String)
 
-    def to_string(self):
-        return str(self.group)
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'group': self.group,
+            'members': self.members,
+            'label': self.label
+        }

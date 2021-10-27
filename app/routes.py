@@ -40,13 +40,8 @@ def handle_kpop_groups():
         kpop_groups = KpopGroup.query.all()
         kpop_response = []
         for group in kpop_groups:
-            kpop_response.append({
-                "id": group.id,
-                "group": group.group,
-                "members": group.members,
-                "label": group.label
-            })
-        return jsonify(kpop_response)
+            kpop_response.append(group.to_dict())
+        return jsonify(kpop_response), 200
 
     # add a new record
     elif request.method == "POST":
@@ -78,24 +73,16 @@ def handle_kpop_group(group_id):
 
     # return the record
     if request.method == "GET":
-        return {
-            "id": kpop_group.id,
-            "group": kpop_group.group,
-            "members": kpop_group.members,
-            "label": kpop_group.label
-        }
+        return jsonify(kpop_group.to_dict())
     # update the record
     elif request.method == "PUT":
         request_body = request.get_json()
-        if not validate_json(request_body):
-            return make_response("Invalid request; requires 'group', 'members' and 'label'", 400)
-        
-        kpop_group.group = request_body["group"]
-        kpop_group.members = request_body["members"]
-        kpop_group.label = request_body["label"]
+        for key, value in request_body.items():
+            if key in KpopGroup.__table__.columns.keys():
+                setattr(kpop_group, key, value)
 
         db.session.commit()
-        return make_response(f"Kpop Group {kpop_group.group} successfully updated", 201)
+        return jsonify(kpop_group.to_dict())
 
     # delete the record
     elif request.method == "DELETE":
